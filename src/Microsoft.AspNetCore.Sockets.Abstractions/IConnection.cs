@@ -12,11 +12,12 @@ namespace Microsoft.AspNetCore.Sockets.Client
     {
         Task StartAsync();
         Task SendAsync(byte[] data, CancellationToken cancellationToken);
+        Task StopAsync();
         Task DisposeAsync();
 
         IDisposable OnReceived(Func<byte[], object, Task> callback, object state);
 
-        Task Closed { get; }
+        event Action<Exception> Closed;
 
         IFeatureCollection Features { get; }
     }

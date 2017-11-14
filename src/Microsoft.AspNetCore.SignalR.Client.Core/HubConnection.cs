@@ -32,14 +32,14 @@ namespace Microsoft.AspNetCore.SignalR.Client
         private HubProtocolReaderWriter _protocolReaderWriter;
 
         private readonly object _pendingCallsLock = new object();
-        private readonly CancellationTokenSource _connectionActive = new CancellationTokenSource();
         private readonly Dictionary<string, InvocationRequest> _pendingCalls = new Dictionary<string, InvocationRequest>();
         private readonly ConcurrentDictionary<string, List<InvocationHandler>> _handlers = new ConcurrentDictionary<string, List<InvocationHandler>>();
+        private CancellationTokenSource _connectionActive;
 
         private int _nextId = 0;
         private volatile bool _startCalled;
 
-        public Task Closed { get; }
+        public event Action<Exception> Closed;
 
         public HubConnection(IConnection connection, IHubProtocol protocol, ILoggerFactory loggerFactory)
         {
@@ -59,11 +59,7 @@ namespace Microsoft.AspNetCore.SignalR.Client
             _loggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
             _logger = _loggerFactory.CreateLogger<HubConnection>();
             _connection.OnReceived((data, state) => ((HubConnection)state).OnDataReceivedAsync(data), this);
-            Closed = _connection.Closed.ContinueWith(task =>
-            {
-                Shutdown(task.Exception);
-                return task;
-            }).Unwrap();
+            _connection.Closed += e => Shutdown(e);
         }
 
         public async Task StartAsync()
@@ -94,12 +90,14 @@ namespace Microsoft.AspNetCore.SignalR.Client
 
             transferModeFeature.TransferMode = requestedTransferMode;
             await _connection.StartAsync();
+
             var actualTransferMode = transferModeFeature.TransferMode;
 
             _protocolReaderWriter = new HubProtocolReaderWriter(_protocol, GetDataEncoder(requestedTransferMode, actualTransferMode));
 
             _logger.HubProtocol(_protocol.Name);
 
+            _connectionActive = new CancellationTokenSource();
             using (var memoryStream = new MemoryStream())
             {
                 NegotiationProtocol.WriteMessage(new NegotiationMessage(_protocol.Name), memoryStream);
@@ -121,12 +119,15 @@ namespace Microsoft.AspNetCore.SignalR.Client
             return new PassThroughEncoder();
         }
 
+        public async Task StopAsync() => await StopAsyncCore().ForceAsync();
+
+        private Task StopAsyncCore() => _connection.StopAsync();
+
         public async Task DisposeAsync() => await DisposeAsyncCore().ForceAsync();
 
         private async Task DisposeAsyncCore()
         {
             await _connection.DisposeAsync();
-            await Closed;
         }
 
         // TODO: Client return values/tasks?
@@ -364,6 +365,8 @@ namespace Microsoft.AspNetCore.SignalR.Client
                 }
                 _pendingCalls.Clear();
             }
+
+            Closed?.Invoke(ex);
         }
 
         private async Task DispatchInvocationAsync(InvocationMessage invocation, CancellationToken cancellationToken)

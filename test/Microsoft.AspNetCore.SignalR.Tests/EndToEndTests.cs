@@ -165,6 +165,19 @@ namespace Microsoft.AspNetCore.SignalR.Tests
                     new TransferModeFeature { TransferMode = requestedTransferMode });
                 try
                 {
+                    var closeTcs = new TaskCompletionSource<object>();
+                    connection.Closed += e =>
+                    {
+                        if (e != null)
+                        {
+                            closeTcs.SetException(e);
+                        }
+                        else
+                        {
+                            closeTcs.SetResult(null);
+                        }
+                    };
+
                     var receiveTcs = new TaskCompletionSource<string>();
                     connection.OnReceived((data, state) =>
                     {
@@ -209,7 +222,7 @@ namespace Microsoft.AspNetCore.SignalR.Tests
                     logger.LogInformation("Receiving message");
                     Assert.Equal(message, await receiveTcs.Task.OrTimeout());
                     logger.LogInformation("Completed receive");
-                    await connection.Closed.OrTimeout();
+                    await closeTcs.Task.OrTimeout();
                 }
                 catch (Exception ex)
                 {
@@ -326,11 +339,22 @@ namespace Microsoft.AspNetCore.SignalR.Tests
                 try
                 {
                     var closeTcs = new TaskCompletionSource<object>();
+                    connection.Closed += e =>
+                    {
+                        if (e != null)
+                        {
+                            closeTcs.SetException(e);
+                        }
+                        else
+                        {
+                            closeTcs.SetResult(null);
+                        }
+                    };
 
                     logger.LogInformation("Starting connection to {url}", url);
                     await connection.StartAsync().OrTimeout();
 
-                    await connection.Closed.OrTimeout();
+                    await closeTcs.Task;
                 }
                 catch (Exception ex)
                 {

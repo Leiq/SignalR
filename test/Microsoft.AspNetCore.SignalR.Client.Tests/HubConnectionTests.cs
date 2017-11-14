@@ -72,10 +72,11 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
         {
             var hubConnection = new HubConnection(new TestConnection(), Mock.Of<IHubProtocol>(), null);
             var closedEventTcs = new TaskCompletionSource<Exception>();
+            hubConnection.Closed += e => closedEventTcs.SetResult(e);
 
             await hubConnection.StartAsync().OrTimeout();
             await hubConnection.DisposeAsync().OrTimeout();
-            await hubConnection.Closed.OrTimeout();
+            Assert.Null(await closedEventTcs.Task);
         }
 
         [Fact]
@@ -181,9 +182,12 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
 
             await hubConnection.StartAsync();
             var invokeTask = hubConnection.InvokeAsync<int>("testMethod");
-            await hubConnection.DisposeAsync();
 
-            await Assert.ThrowsAsync<InvalidOperationException>(async () => await invokeTask);
+            var exception = new InvalidOperationException();
+            mockConnection.Raise(m => m.Closed += null, exception);
+
+            var actualException = await Assert.ThrowsAsync<InvalidOperationException>(async () => await invokeTask);
+            Assert.Equal(exception, actualException);
         }
 
         // Moq really doesn't handle out parameters well, so to make these tests work I added a manual mock -anurse
