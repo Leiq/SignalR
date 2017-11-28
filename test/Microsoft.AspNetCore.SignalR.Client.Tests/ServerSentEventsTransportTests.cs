@@ -56,7 +56,7 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
                     var transportToConnection = Channel.CreateUnbounded<byte[]>();
                     var channelConnection = new ChannelConnection<SendMessage, byte[]>(connectionToTransport, transportToConnection);
                     await sseTransport.StartAsync(
-                        new Uri("http://fakeuri.org"), channelConnection, TransferMode.Text, connectionId: string.Empty).OrTimeout();
+                        new Uri("http://fakeuri.org"), channelConnection, TransferMode.Text, connectionId: string.Empty, connection: Mock.Of<IConnection>()).OrTimeout();
 
                     await eventStreamTcs.Task.OrTimeout();
                     await sseTransport.StopAsync().OrTimeout();
@@ -109,7 +109,7 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
                     var transportToConnection = Channel.CreateUnbounded<byte[]>();
                     var channelConnection = new ChannelConnection<SendMessage, byte[]>(connectionToTransport, transportToConnection);
                     await sseTransport.StartAsync(
-                        new Uri("http://fakeuri.org"), channelConnection, TransferMode.Text, connectionId: string.Empty).OrTimeout();
+                        new Uri("http://fakeuri.org"), channelConnection, TransferMode.Text, connectionId: string.Empty, connection: Mock.Of<IConnection>()).OrTimeout();
 
                     transportActiveTask = sseTransport.Running;
                     Assert.False(transportActiveTask.IsCompleted);
@@ -157,7 +157,7 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
                 var transportToConnection = Channel.CreateUnbounded<byte[]>();
                 var channelConnection = new ChannelConnection<SendMessage, byte[]>(connectionToTransport, transportToConnection);
                 await sseTransport.StartAsync(
-                    new Uri("http://fakeuri.org"), channelConnection, TransferMode.Text, connectionId: string.Empty).OrTimeout();
+                    new Uri("http://fakeuri.org"), channelConnection, TransferMode.Text, connectionId: string.Empty, connection: Mock.Of<IConnection>()).OrTimeout();
 
                 var exception = await Assert.ThrowsAsync<FormatException>(() => sseTransport.Running.OrTimeout());
                 Assert.Equal("Incomplete message.", exception.Message);
@@ -203,7 +203,7 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
                 var channelConnection = new ChannelConnection<SendMessage, byte[]>(connectionToTransport, transportToConnection);
 
                 await sseTransport.StartAsync(
-                    new Uri("http://fakeuri.org"), channelConnection, TransferMode.Text, connectionId: string.Empty).OrTimeout();
+                    new Uri("http://fakeuri.org"), channelConnection, TransferMode.Text, connectionId: string.Empty, connection: Mock.Of<IConnection>()).OrTimeout();
                 await eventStreamTcs.Task;
 
                 var sendTcs = new TaskCompletionSource<object>();
@@ -250,7 +250,7 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
                 var channelConnection = new ChannelConnection<SendMessage, byte[]>(connectionToTransport, transportToConnection);
 
                 await sseTransport.StartAsync(
-                    new Uri("http://fakeuri.org"), channelConnection, TransferMode.Text, connectionId: string.Empty).OrTimeout();
+                    new Uri("http://fakeuri.org"), channelConnection, TransferMode.Text, connectionId: string.Empty, connection: Mock.Of<IConnection>()).OrTimeout();
                 await eventStreamTcs.Task.OrTimeout();
 
                 connectionToTransport.Writer.TryComplete(null);
@@ -279,7 +279,7 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
                 var transportToConnection = Channel.CreateUnbounded<byte[]>();
                 var channelConnection = new ChannelConnection<SendMessage, byte[]>(connectionToTransport, transportToConnection);
                 await sseTransport.StartAsync(
-                    new Uri("http://fakeuri.org"), channelConnection, TransferMode.Text, connectionId: string.Empty).OrTimeout();
+                    new Uri("http://fakeuri.org"), channelConnection, TransferMode.Text, connectionId: string.Empty, connection: Mock.Of<IConnection>()).OrTimeout();
 
                 var message = await transportToConnection.Reader.ReadAsync().AsTask().OrTimeout();
                 Assert.Equal("3:abc", Encoding.ASCII.GetString(message));
@@ -309,7 +309,7 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
                 var transportToConnection = Channel.CreateUnbounded<byte[]>();
                 var channelConnection = new ChannelConnection<SendMessage, byte[]>(connectionToTransport, transportToConnection);
                 Assert.Null(sseTransport.Mode);
-                await sseTransport.StartAsync(new Uri("http://fakeuri.org"), channelConnection, transferMode, connectionId: string.Empty).OrTimeout();
+                await sseTransport.StartAsync(new Uri("http://fakeuri.org"), channelConnection, transferMode, connectionId: string.Empty, connection: Mock.Of<IConnection>()).OrTimeout();
                 Assert.Equal(TransferMode.Text, sseTransport.Mode);
                 await sseTransport.StopAsync().OrTimeout();
             }
@@ -334,7 +334,7 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
                 var transportToConnection = Channel.CreateUnbounded<byte[]>();
                 var channelConnection = new ChannelConnection<SendMessage, byte[]>(connectionToTransport, transportToConnection);
                 var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
-                    sseTransport.StartAsync(new Uri("http://fakeuri.org"), null, TransferMode.Text | TransferMode.Binary, connectionId: string.Empty));
+                    sseTransport.StartAsync(new Uri("http://fakeuri.org"), null, TransferMode.Text | TransferMode.Binary, connectionId: string.Empty, connection: Mock.Of<IConnection>()));
 
                 Assert.Contains("Invalid transfer mode.", exception.Message);
                 Assert.Equal("requestedTransferMode", exception.ParamName);
