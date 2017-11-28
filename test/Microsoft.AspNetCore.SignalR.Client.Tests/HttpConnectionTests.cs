@@ -265,7 +265,7 @@ namespace Microsoft.AspNetCore.Sockets.Client.Tests
             var mockTransport = new Mock<ITransport>();
             Channel<byte[], SendMessage> channel = null;
             mockTransport.Setup(t => t.StartAsync(It.IsAny<Uri>(), It.IsAny<Channel<byte[], SendMessage>>(), It.IsAny<TransferMode>(), It.IsAny<string>(), It.IsAny<IConnection>()))
-                .Returns<Uri, Channel<byte[], SendMessage>, TransferMode, string>((url, c, transferMode, connectionId) =>
+                .Returns<Uri, Channel<byte[], SendMessage>, TransferMode, string, IConnection>((url, c, transferMode, connectionId, _) =>
                 {
                     channel = c;
                     return Task.CompletedTask;
@@ -313,7 +313,7 @@ namespace Microsoft.AspNetCore.Sockets.Client.Tests
             var mockTransport = new Mock<ITransport>();
             Channel<byte[], SendMessage> channel = null;
             mockTransport.Setup(t => t.StartAsync(It.IsAny<Uri>(), It.IsAny<Channel<byte[], SendMessage>>(), It.IsAny<TransferMode>(), It.IsAny<string>(), It.IsAny<IConnection>()))
-                .Returns<Uri, Channel<byte[], SendMessage>, TransferMode, string>((url, c, transferMode, connectionId) =>
+                .Returns<Uri, Channel<byte[], SendMessage>, TransferMode, string, IConnection>((url, c, transferMode, connectionId, _) =>
                 {
                     channel = c;
                     return Task.CompletedTask;
@@ -370,7 +370,7 @@ namespace Microsoft.AspNetCore.Sockets.Client.Tests
             var mockTransport = new Mock<ITransport>();
             Channel<byte[], SendMessage> channel = null;
             mockTransport.Setup(t => t.StartAsync(It.IsAny<Uri>(), It.IsAny<Channel<byte[], SendMessage>>(), It.IsAny<TransferMode>(), It.IsAny<string>(), It.IsAny<IConnection>()))
-                .Returns<Uri, Channel<byte[], SendMessage>, TransferMode, string>((url, c, transferMode, connectionId) =>
+                .Returns<Uri, Channel<byte[], SendMessage>, TransferMode, string, IConnection>((url, c, transferMode, connectionId, _) =>
                 {
                     channel = c;
                     return Task.CompletedTask;
@@ -415,7 +415,7 @@ namespace Microsoft.AspNetCore.Sockets.Client.Tests
             var mockTransport = new Mock<ITransport>();
             Channel<byte[], SendMessage> channel = null;
             mockTransport.Setup(t => t.StartAsync(It.IsAny<Uri>(), It.IsAny<Channel<byte[], SendMessage>>(), It.IsAny<TransferMode>(), It.IsAny<string>(), It.IsAny<IConnection>()))
-                .Returns<Uri, Channel<byte[], SendMessage>, TransferMode, string>((url, c, transferMode, connectionId) =>
+                .Returns<Uri, Channel<byte[], SendMessage>, TransferMode, string, IConnection>((url, c, transferMode, connectionId, _) =>
                 {
                     channel = c;
                     return Task.CompletedTask;
@@ -927,7 +927,7 @@ namespace Microsoft.AspNetCore.Sockets.Client.Tests
             var mockTransport = new Mock<ITransport>();
             Channel<byte[], SendMessage> channel = null;
             mockTransport.Setup(t => t.StartAsync(It.IsAny<Uri>(), It.IsAny<Channel<byte[], SendMessage>>(), It.IsAny<TransferMode>(), It.IsAny<string>(), It.IsAny<IConnection>()))
-                .Returns<Uri, Channel<byte[], SendMessage>, TransferMode, string>((url, c, transferMode, connectionId) =>
+                .Returns<Uri, Channel<byte[], SendMessage>, TransferMode, string, IConnection>((url, c, transferMode, connectionId, _) =>
                 {
                     channel = c;
                     return Task.CompletedTask;

@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Sockets.Internal;
 using Moq;
 using Moq.Protected;
 using Xunit;
+using Microsoft.AspNetCore.SignalR.Client.Tests;
 
 namespace Microsoft.AspNetCore.Client.Tests
 {
@@ -44,7 +45,7 @@ namespace Microsoft.AspNetCore.Client.Tests
                     var connectionToTransport = Channel.CreateUnbounded<SendMessage>();
                     var transportToConnection = Channel.CreateUnbounded<byte[]>();
                     var channelConnection = new ChannelConnection<SendMessage, byte[]>(connectionToTransport, transportToConnection);
-                    await longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), channelConnection, TransferMode.Binary, connectionId: string.Empty, connection: Mock.Of<IConnection>());
+                    await longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), channelConnection, TransferMode.Binary, connectionId: string.Empty, connection: new TestConnection());
 
                     transportActiveTask = longPollingTransport.Running;
 
@@ -80,7 +81,7 @@ namespace Microsoft.AspNetCore.Client.Tests
                     var connectionToTransport = Channel.CreateUnbounded<SendMessage>();
                     var transportToConnection = Channel.CreateUnbounded<byte[]>();
                     var channelConnection = ChannelConnection.Create(connectionToTransport, transportToConnection);
-                    await longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), channelConnection, TransferMode.Binary, connectionId: string.Empty, connection: Mock.Of<IConnection>());
+                    await longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), channelConnection, TransferMode.Binary, connectionId: string.Empty, connection: new TestConnection());
 
                     await longPollingTransport.Running.OrTimeout();
                     Assert.True(transportToConnection.Reader.Completion.IsCompleted);
@@ -133,7 +134,7 @@ namespace Microsoft.AspNetCore.Client.Tests
                     var connectionToTransport = Channel.CreateUnbounded<SendMessage>();
                     var transportToConnection = Channel.CreateUnbounded<byte[]>();
                     var channelConnection = new ChannelConnection<SendMessage, byte[]>(connectionToTransport, transportToConnection);
-                    await longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), channelConnection, TransferMode.Binary, connectionId: string.Empty, connection: Mock.Of<IConnection>());
+                    await longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), channelConnection, TransferMode.Binary, connectionId: string.Empty, connection: new TestConnection());
 
                     var data = await transportToConnection.Reader.ReadAllAsync().OrTimeout();
                     await longPollingTransport.Running.OrTimeout();
@@ -169,7 +170,7 @@ namespace Microsoft.AspNetCore.Client.Tests
                     var connectionToTransport = Channel.CreateUnbounded<SendMessage>();
                     var transportToConnection = Channel.CreateUnbounded<byte[]>();
                     var channelConnection = new ChannelConnection<SendMessage, byte[]>(connectionToTransport, transportToConnection);
-                    await longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), channelConnection, TransferMode.Binary, connectionId: string.Empty, connection: Mock.Of<IConnection>());
+                    await longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), channelConnection, TransferMode.Binary, connectionId: string.Empty, connection: new TestConnection());
 
                     var exception =
                         await Assert.ThrowsAsync<HttpRequestException>(async () => await transportToConnection.Reader.Completion.OrTimeout());
@@ -205,7 +206,7 @@ namespace Microsoft.AspNetCore.Client.Tests
                     var connectionToTransport = Channel.CreateUnbounded<SendMessage>();
                     var transportToConnection = Channel.CreateUnbounded<byte[]>();
                     var channelConnection = new ChannelConnection<SendMessage, byte[]>(connectionToTransport, transportToConnection);
-                    await longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), channelConnection, TransferMode.Binary, connectionId: string.Empty, connection: Mock.Of<IConnection>());
+                    await longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), channelConnection, TransferMode.Binary, connectionId: string.Empty, connection: new TestConnection());
 
                     await connectionToTransport.Writer.WriteAsync(new SendMessage());
 
@@ -246,7 +247,7 @@ namespace Microsoft.AspNetCore.Client.Tests
                     var connectionToTransport = Channel.CreateUnbounded<SendMessage>();
                     var transportToConnection = Channel.CreateUnbounded<byte[]>();
                     var channelConnection = new ChannelConnection<SendMessage, byte[]>(connectionToTransport, transportToConnection);
-                    await longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), channelConnection, TransferMode.Binary, connectionId: string.Empty, connection: Mock.Of<IConnection>());
+                    await longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), channelConnection, TransferMode.Binary, connectionId: string.Empty, connection: new TestConnection());
 
                     connectionToTransport.Writer.Complete();
 
@@ -297,7 +298,7 @@ namespace Microsoft.AspNetCore.Client.Tests
                     var channelConnection = new ChannelConnection<SendMessage, byte[]>(connectionToTransport, transportToConnection);
 
                     // Start the transport
-                    await longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), channelConnection, TransferMode.Binary, connectionId: string.Empty, connection: Mock.Of<IConnection>());
+                    await longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), channelConnection, TransferMode.Binary, connectionId: string.Empty, connection: new TestConnection());
 
                     // Wait for the transport to finish
                     await longPollingTransport.Running.OrTimeout();
@@ -362,7 +363,7 @@ namespace Microsoft.AspNetCore.Client.Tests
                     await connectionToTransport.Writer.WriteAsync(new SendMessage(Encoding.UTF8.GetBytes("World"), tcs2)).OrTimeout();
 
                     // Start the transport
-                    await longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), channelConnection, TransferMode.Binary, connectionId: string.Empty, connection: Mock.Of<IConnection>());
+                    await longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), channelConnection, TransferMode.Binary, connectionId: string.Empty, connection: new TestConnection());
 
                     connectionToTransport.Writer.Complete();
 
@@ -405,7 +406,7 @@ namespace Microsoft.AspNetCore.Client.Tests
                     var channelConnection = new ChannelConnection<SendMessage, byte[]>(connectionToTransport, transportToConnection);
 
                     Assert.Null(longPollingTransport.Mode);
-                    await longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), channelConnection, transferMode, connectionId: string.Empty, connection: Mock.Of<IConnection>());
+                    await longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), channelConnection, transferMode, connectionId: string.Empty, connection: new TestConnection());
                     Assert.Equal(transferMode, longPollingTransport.Mode);
                 }
                 finally
@@ -431,7 +432,7 @@ namespace Microsoft.AspNetCore.Client.Tests
             {
                 var longPollingTransport = new LongPollingTransport(httpClient);
                 var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
-                    longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), null, TransferMode.Text | TransferMode.Binary, connectionId: string.Empty, connection: Mock.Of<IConnection>()));
+                    longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), null, TransferMode.Text | TransferMode.Binary, connectionId: string.Empty, connection: new TestConnection()));
 
                 Assert.Contains("Invalid transfer mode.", exception.Message);
                 Assert.Equal("requestedTransferMode", exception.ParamName);
@@ -469,7 +470,7 @@ namespace Microsoft.AspNetCore.Client.Tests
                     var connectionToTransport = Channel.CreateUnbounded<SendMessage>();
                     var transportToConnection = Channel.CreateUnbounded<byte[]>();
                     var channelConnection = new ChannelConnection<SendMessage, byte[]>(connectionToTransport, transportToConnection);
-                    await longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), channelConnection, TransferMode.Binary, connectionId: string.Empty, connection: Mock.Of<IConnection>());
+                    await longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), channelConnection, TransferMode.Binary, connectionId: string.Empty, connection: new TestConnection());
 
                     var completedTask = await Task.WhenAny(completionTcs.Task, longPollingTransport.Running).OrTimeout();
                     Assert.Equal(completionTcs.Task, completedTask);
